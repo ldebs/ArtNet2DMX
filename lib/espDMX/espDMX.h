@@ -3,6 +3,11 @@ espDMX v2 library
 Copyright (c) 2016, Matthew Tong
 https://github.com/mtongnz/espDMX
 
+espDMX Derivative Library
+Copyright (c) 2023, Laurent Debat
+https://www.ldebs.org/artnet2dmx
+
+
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
 License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any
 later version.
@@ -18,8 +23,9 @@ If not, see http://www.gnu.org/licenses/
 #define espDMX_h
 
 #include <inttypes.h>
-#include "Stream.h"
+#include <Stream.h>
 #include <HardwareSerial.h>
+#include <functional>
 
 #define DMX_TX_CONF SERIAL_8N2 // SERIAL_8N2
 #define DMX_TX_BAUD 250000
@@ -55,6 +61,8 @@ private:
     uint8_t chValues[512];
     /** Time of the last full universe transmission */
     unsigned long lastTime;
+    /** Handler function to call while waiting FIFO to flush */
+    std::function<void(void)> handlerFunction;
 
     // Friend function to handle DMX interrupt
     friend void espdmx_interrupt_handler();
@@ -74,7 +82,7 @@ public:
     espDMX(uint8_t universe);
 
     // Begin DMX communication
-    void begin();
+    void begin(std::function<void(void)> handlerFunction = nullptr);
 
     // Pause and unpause DMX transmission
     void pause();

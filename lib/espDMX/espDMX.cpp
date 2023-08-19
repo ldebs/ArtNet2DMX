@@ -3,6 +3,10 @@ espDMX v2 library
 Copyright (c) 2016, Matthew Tong
 https://github.com/mtongnz/espDMX
 
+espDMX Derivative Library
+Copyright (c) 2023, Laurent Debat
+https://www.ldebs.org/artnet2dmx
+
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
 License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any
 later version.
@@ -14,9 +18,7 @@ You should have received a copy of the GNU General Public License along with thi
 If not, see http://www.gnu.org/licenses/
 */
 
-#include "espDMX.h"
-
-#include "inout.h"
+#include "espDMX/espDMX.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -97,7 +99,8 @@ void espDMX::transmit()
         while (((USS(universe) >> USTXC) & 0xff) != 0)
         {
             yield();
-            statusLed.handle();
+            if (handlerFunction)
+                handlerFunction();
         }
 
         // Allow the last channel to be fully sent before BREAK
@@ -282,8 +285,9 @@ espDMX::espDMX(uint8_t universe) : universe(universe)
 }
 
 // Initialize the DMX instance and delay for stabilization
-void espDMX::begin()
+void espDMX::begin(std::function<void(void)> _handlerFunction)
 {
+    handlerFunction = _handlerFunction;
     if (state == DMX_NOT_INIT)
     {
         init();

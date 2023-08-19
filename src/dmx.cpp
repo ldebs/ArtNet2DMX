@@ -1,6 +1,7 @@
 #include "dmx.h"
 
 #include "settings.h"
+#include "inout.h"
 #include "espDMX.h"
 
 Dmx dmx;
@@ -8,8 +9,8 @@ Dmx dmx;
 // Init DMX communication
 void Dmx::start()
 {
-    dmxA.begin();
-    dmxB.begin();
+    dmxA.begin([](){statusLed.handle();});
+    dmxB.begin([](){statusLed.handle();});
 }
 // Pause and unpause DMX transmission
 void Dmx::pause()
