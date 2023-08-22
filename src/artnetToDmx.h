@@ -1,6 +1,8 @@
 #ifndef __ARTNET_H__
 #define __ARTNET_H__
 
+#include "settings.h"
+
 #include <ArtnetWifi.h>
 
 class ArtnetToDmx

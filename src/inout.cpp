@@ -1,6 +1,5 @@
 #include "inout.h"
 
-#include "settings.h"
 #include "flags.h"
 #include "main.h"
 

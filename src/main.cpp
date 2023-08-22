@@ -1,4 +1,5 @@
-#include "settings.h"
+#include "main.h"
+
 #include "inout.h"
 #include "wifi.h"
 #include "webServer.h"
@@ -49,7 +50,9 @@ void loop()
   artnetToDmx.read();
 
   // handle DNS requests
+  #ifdef USE_DNS
   wifi.handleDns();
+  #endif
 
   // Handle web requests
   webServer.handleClient();

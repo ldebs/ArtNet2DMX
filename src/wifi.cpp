@@ -1,5 +1,5 @@
 #include "wifi.h"
-#include "settings.h"
+
 #include "webServer.h"
 #include "inout.h"
 #include "main.h"
@@ -105,7 +105,9 @@ void Wifi::hotSpot(bool def)
   // Get MAC Address
   getMac();
 
+  #ifdef USE_DNS
   dnsServer.start(DNS_PORT, "*", ap_ip);
+  #endif
 
   // If standAlone, return to main loop
   if (settings.standAlone)
@@ -131,7 +133,9 @@ void Wifi::hotSpot(bool def)
       while (true)
       {
         // handle DNS requests
+        #ifdef USE_DNS
         handleDns();
+        #endif
         // handle web requests only when in hotSpot mode
         webServer.handleClient();
 
@@ -154,7 +158,9 @@ void Wifi::hotSpot(bool def)
     }
 
     // handle DNS requests
+    #ifdef USE_DNS
     handleDns();
+    #endif
     // handle buttons
     buttons.handle();
     // handle Status LEDs
@@ -198,8 +204,10 @@ bool Wifi::notConnected()
   return WiFi.status() != WL_CONNECTED;
 }
 
+#ifdef USE_DNS
 void Wifi::handleDns()
 {
   if (isHotSpot)
     dnsServer.processNextRequest();
 };
+#endif

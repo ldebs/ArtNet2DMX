@@ -1,7 +1,6 @@
 #include "store.h"
 
-#include "settings.h"
-#include "espDMX/espDMX.h"
+#include "espDMX.h"
 #include "webServer.h"
 
 #include <Arduino.h>

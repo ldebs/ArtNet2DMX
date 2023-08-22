@@ -6,6 +6,9 @@
 
 #define FIRMWARE_VERSION "v2.0.0"
 
+// DNS
+#define USE_DNS
+
 // Wifi
 #define TIMEOUT_WAIT_CLIENT 60000
 #define TIMEOUT_END_CLIENT 120000

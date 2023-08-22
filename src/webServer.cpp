@@ -1,7 +1,6 @@
 #include "webServer.h"
 
 #include "main.h"
-#include "settings.h"
 #include "wifi.h"
 #include "dmx.h"
 #include "inout.h"

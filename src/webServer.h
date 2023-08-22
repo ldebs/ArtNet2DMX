@@ -1,6 +1,8 @@
 #ifndef __WEBSERVER_H__
 #define __WEBSERVER_H__
 
+#include "settings.h"
+
 #include <ESP8266WebServer.h>
 
 class WebServer

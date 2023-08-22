@@ -1,6 +1,5 @@
 #include "artnetToDmx.h"
 
-#include "settings.h"
 #include "inout.h"
 #include "dmx.h"
 

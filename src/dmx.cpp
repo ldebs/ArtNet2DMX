@@ -1,6 +1,5 @@
 #include "dmx.h"
 
-#include "settings.h"
 #include "inout.h"
 #include "espDMX.h"
 

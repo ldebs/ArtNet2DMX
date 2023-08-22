@@ -1,6 +1,8 @@
 #ifndef __STORE_H__
 #define __STORE_H__
 
+#include "settings.h"
+
 #include <Arduino.h>
 
 class Store {

@@ -1,6 +1,8 @@
 #ifndef __DMX_H__
 #define __DMX_H__
 
+#include "settings.h"
+
 #include <Arduino.h>
 
 class Dmx

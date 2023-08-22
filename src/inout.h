@@ -1,6 +1,8 @@
 #ifndef __INOUT_H__
 #define __INOUT_H__
 
+#include "settings.h"
+
 #include <Arduino.h>
 
 #define L_RG(RPattern, GPattern) ((RPattern << 8) | GPattern)
