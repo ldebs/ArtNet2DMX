@@ -538,8 +538,12 @@ void WebServer::webSave() {
  *  Send our style sheet to the web client
  */
 void WebServer::webCSS() {
+  // Stop DMX interupts
+  dmx.pause();
   ws.sendHeader("Connection", "close");
   ws.send(200, "text/html", getFlashString(style));
+  // Restart DMX interupts
+  dmx.unPause();
 }
 
 
@@ -561,8 +565,7 @@ void WebServer::webFirmwareUpdate() {
   ws.send(200, "text/html", (Update.hasError()) ? fail : ok);
 
   // Restart device
-  delay(200);
-  ESP.restart();
+  restart();
 }
 
 
@@ -612,6 +615,8 @@ void WebServer::webFirmwareUpload() {
  *  display a 404 page
  */
 void WebServer::webNotFound() {
+  // Stop DMX interupts
+  dmx.pause();
   // Check if we're recalling a stored DMX state
   char charBuf[ws.uri().length() + 1];
   ws.uri().toCharArray(charBuf, ws.uri().length() + 1);
@@ -634,6 +639,9 @@ void WebServer::webNotFound() {
   // Send page
   ws.sendHeader("Connection", "close");
   ws.send(200, "text/html", message);
+
+  // Restart DMX interupts
+  dmx.unPause();
 }
 
 
