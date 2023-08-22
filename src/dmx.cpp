@@ -6,11 +6,16 @@
 
 Dmx dmx;
 
+void espDMXHandleIO() {
+    buttons.handle();
+    statusLed.handle();
+}
+
 // Init DMX communication
 void Dmx::start()
 {
-    dmxA.begin([](){statusLed.handle();});
-    dmxB.begin([](){statusLed.handle();});
+    dmxA.begin(espDMXHandleIO);
+    dmxB.begin(espDMXHandleIO);
 }
 // Pause and unpause DMX transmission
 void Dmx::pause()

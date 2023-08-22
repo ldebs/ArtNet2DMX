@@ -98,9 +98,9 @@ void espDMX::transmit()
         // Wait for the UART TX FIFO to be empty
         while (((USS(universe) >> USTXC) & 0xff) != 0)
         {
+            if(handleIO)
+                handleIO();
             yield();
-            if (handlerFunction)
-                handlerFunction();
         }
 
         // Allow the last channel to be fully sent before BREAK
@@ -285,9 +285,9 @@ espDMX::espDMX(uint8_t universe) : universe(universe)
 }
 
 // Initialize the DMX instance and delay for stabilization
-void espDMX::begin(std::function<void(void)> _handlerFunction)
+void espDMX::begin(void (*_handleIO)())
 {
-    handlerFunction = _handlerFunction;
+    handleIO = _handleIO;
     if (state == DMX_NOT_INIT)
     {
         init();

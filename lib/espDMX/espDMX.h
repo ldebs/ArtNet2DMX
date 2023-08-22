@@ -25,7 +25,6 @@ If not, see http://www.gnu.org/licenses/
 #include <inttypes.h>
 #include <Stream.h>
 #include <HardwareSerial.h>
-#include <functional>
 
 #define DMX_TX_CONF SERIAL_8N2 // SERIAL_8N2
 #define DMX_TX_BAUD 250000
@@ -61,8 +60,8 @@ private:
     uint8_t chValues[512];
     /** Time of the last full universe transmission */
     unsigned long lastTime;
-    /** Handler function to call while waiting FIFO to flush */
-    std::function<void(void)> handlerFunction;
+    /** Handle IO while waiting for UART */
+    void (*handleIO)();
 
     // Friend function to handle DMX interrupt
     friend void espdmx_interrupt_handler();
@@ -82,7 +81,7 @@ public:
     espDMX(uint8_t universe);
 
     // Begin DMX communication
-    void begin(std::function<void(void)> handlerFunction = nullptr);
+    void begin(void (*handleIO)() = NULL);
 
     // Pause and unpause DMX transmission
     void pause();
