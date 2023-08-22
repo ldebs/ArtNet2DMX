@@ -1,6 +1,8 @@
 #include "wifi.h"
 
+#ifdef USE_WEBSERVER
 #include "webServer.h"
+#endif
 #include "inout.h"
 #include "main.h"
 
@@ -10,7 +12,7 @@
 
 Wifi wifi;
 
-/* startWiFi()
+/**
  *  Connects our WiFi.
  *  If it can't connect and allowHotSpot is set, it will call startHotSpot
  */
@@ -65,7 +67,7 @@ void Wifi::start()
   allowHotSpot = false;
 }
 
-/* startHotSpot()
+/**
  *  This starts our hot spot and webserver.  It doesn't start UDP listner for ArtNet however.
  *  It also resets our device after set timeouts.
  */
@@ -79,7 +81,7 @@ void Wifi::hotSpot(bool def)
   String ssid = def ? DEFAULT_SSID : settings.wifiSSID;
   String password = def ? DEFAULT_PASSWORD : settings.wifiPass;
   ssid += '_';
-  ssid += String(ESP.getChipId());
+  ssid += String(ESP.getChipId(),16);
 
   // start softAP
   WiFi.mode(WIFI_AP);
@@ -114,7 +116,9 @@ void Wifi::hotSpot(bool def)
     return;
 
   // Start webServer
+  #ifdef USE_WEBSERVER
   webServer.start();
+  #endif
 
   // Set timer
   unsigned long startTime = millis();
@@ -137,7 +141,9 @@ void Wifi::hotSpot(bool def)
         handleDns();
         #endif
         // handle web requests only when in hotSpot mode
+        #ifdef USE_WEBSERVER
         webServer.handleClient();
+        #endif
 
         // reset timer when a client is connected
         if (wifi_softap_get_station_num() != 0)

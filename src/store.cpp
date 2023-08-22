@@ -1,7 +1,9 @@
 #include "store.h"
 
 #include "espDMX.h"
+#ifdef USE_WEBSERVER
 #include "webServer.h"
+#endif
 
 #include <Arduino.h>
 #include <inttypes.h>
@@ -169,8 +171,10 @@ bool Store::sceneLoad(uint16_t sceneNum){
   // Close file
   f.close();
 
+  #ifdef USE_WEBSERVER
   webServer.outputScene = true;
   webServer.outputSceneNum = sceneNum;
+  #endif
   
   return true;
 }
@@ -178,5 +182,7 @@ bool Store::sceneLoad(uint16_t sceneNum){
 void Store::scenesClear(){
   dmxA.clearChValues();
   dmxB.clearChValues();
+  #ifdef USE_WEBSERVER
   webServer.outputScene = false;
+  #endif
 }

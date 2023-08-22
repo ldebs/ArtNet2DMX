@@ -2,9 +2,12 @@
 
 #include "inout.h"
 #include "wifi.h"
-#include "webServer.h"
 #include "artnetToDmx.h"
 #include "dmx.h"
+
+#ifdef USE_WEBSERVER
+#include "webServer.h"
+#endif
 
 #include <Arduino.h>
 
@@ -28,7 +31,9 @@ void setup()
   }
 
   // Start WebServer
+  #ifdef USE_WEBSERVER
   webServer.start();
+  #endif
 
   // Start DMX
   dmx.start();
@@ -55,7 +60,9 @@ void loop()
   #endif
 
   // Handle web requests
+  #ifdef USE_WEBSERVER
   webServer.handleClient();
+  #endif
 
   // handle led
   statusLed.handle();

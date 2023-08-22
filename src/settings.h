@@ -6,18 +6,28 @@
 
 #define FIRMWARE_VERSION "v2.0.0"
 
-// DNS
+// Features
 #define USE_DNS
+#define USE_WEBSERVER
 
 // Wifi
-#define TIMEOUT_WAIT_CLIENT 60000
-#define TIMEOUT_END_CLIENT 120000
-#define CONNECT_TIMEOUT 30000
-
-// ArtNet
 #define DEFAULT_NODE "ArtNet2DMX"
 #define DEFAULT_SSID "ArtNet2DMX"
 #define DEFAULT_PASSWORD "ArtNet2DMX"
+#define TIMEOUT_WAIT_CLIENT 60000
+#define TIMEOUT_END_CLIENT 120000
+#define CONNECT_TIMEOUT 30000
+#define DEFAULT_IP 192, 168, 42, 1
+#define DEFAULT_GW 192, 168, 42, 1
+#define DEFAULT_BROADCAST 192, 168, 42, 255
+#define DEFAULT_SUBNET 255, 255, 255, 0
+#define DEFAULT_DHCP true;
+#define DEFAULT_STANDALONE false;
+
+// ArtNet
+#define DEFAULT_ARTNETUNIA = 0;
+#define DEFAULT_ARTNETUNIB = 1;
+#define DEFAULT_ARTNETSUB = 0;
 
 // button 1
 #define PIN_BUT1 5
@@ -49,16 +59,16 @@ public:
   char nodeName[32] = DEFAULT_NODE;
   char wifiSSID[32] = DEFAULT_SSID;
   char wifiPass[32] = DEFAULT_PASSWORD;
-  uint32_t ip = IPAddress(192, 168, 42, 1);
-  uint32_t gw = IPAddress(192, 168, 42, 1);
-  uint32_t broadcast_ip = IPAddress(192, 168, 42, 255);
-  uint32_t subnet = IPAddress(255, 255, 255, 0);
+  uint32_t ip = IPAddress(DEFAULT_IP);
+  uint32_t gw = IPAddress(DEFAULT_GW);
+  uint32_t broadcast_ip = IPAddress(DEFAULT_BROADCAST);
+  uint32_t subnet = IPAddress(DEFAULT_SUBNET);
   uint16_t hotSpotDelay = CONNECT_TIMEOUT;
-  bool dhcp = true;
-  bool standAlone = false;
-  uint8_t artNetUniA = 0;
-  uint8_t artNetUniB = 1;
-  uint8_t artNetSub = 0;
+  bool dhcp = DEFAULT_DHCP;
+  bool standAlone = DEFAULT_STANDALONE;
+  uint8_t artNetUniA = DEFAULT_ARTNETUNIA;
+  uint8_t artNetUniB = DEFAULT_ARTNETUNIB;
+  uint8_t artNetSub = DEFAULT_ARTNETSUB;
   uint8_t ledIntensity = DEFAULT_LED_INTENSITY;
   uint8_t blinkTimeoutEighth = BLINK_CONVERT(DEFAULT_BLINK_BPM);
 
