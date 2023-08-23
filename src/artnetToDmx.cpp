@@ -11,7 +11,7 @@ ArtnetToDmx artnetToDmx;
 void ArtnetToDmx::start()
 {
     artnet.begin(settings.nodeName);
-    artnet.setArtDmxCallback(&ArtnetToDmx::onDmxFrame);
+    artnet.setArtDmxCallback(ArtnetToDmx::onDmxFrame);
 }
 
 void ArtnetToDmx::read()

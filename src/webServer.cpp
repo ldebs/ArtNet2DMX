@@ -211,8 +211,8 @@ void WebServer::webHome() {
 
   message += "<tr><td class='left'>Start Delay</td><td colspan=4>\n"
       "<a href='#' onClick=\"javascript: var help = document.getElementById('helpHotSpotTimeout').style; if (help.display == 'none') {help.display='block';} else { help.display='none';}\" class='round-button'>?</a>\n"
-      "<input type='number' name='hotSpotDelay' value='"
-      + String(settings.hotSpotDelay)
+      "<input type='number' name='wifiTimeout' value='"
+      + String(settings.wifiTimeout)
       + "' min='10' max='65535' class='number'>\n"
       "<p id='helpHotSpotTimeout' style='display:none;'>The hotspot will start after <i>x</i> seconds if it can't connect to the WiFi specified above.  This will only occur on power up and not after a dropped WiFi connection.</p>\n"
       "</td></tr>\n";
@@ -320,19 +320,18 @@ void WebServer::webHome() {
   message += "</td></tr>\n";
   
   // Broadcast
-  addr=IPAddress(settings.broadcast_ip);
+  addr=IPAddress(wifi.broadcast_ip);
   message += "<tr class='static_table'";
   if (settings.dhcp)
     message += " style='display:none;'";
   message += "><td class='left'>Broadcast IP</td>\n";
-    for (int x = 0; x < 4; x++) {
-    message += "<td><input type='number' name='broadcast_ip_";
-    message += char(x+48);
-    message += "' value='"
-        + String(addr[x])
-        + "' min=0 max=255 class='number'></td>\n";
+  message += "<td colspan=4>";
+  for (int x = 0; x < 4; x++) {
+    if (x > 0)
+      message += " . ";
+    message += String(addr[x]);
   }
-  message += "</tr>\n";
+  message += "</td></tr>\n";
 
   message += "<tr class='dhcp_table'";
   if (!settings.dhcp)
@@ -381,10 +380,10 @@ void WebServer::webHome() {
 
 bool WebServer::checkIp(const String & id, IPAddress & tmpAddr){
   bool ok = true;
-  char tmpArg[32];
+  char tmpArg[MAX_STR_SIZE];
   int tmp;
   for (int x = 0; x < 4; x++) {
-    ws.arg(id+x).toCharArray(tmpArg, 32);
+    ws.arg(id+x).toCharArray(tmpArg, MAX_STR_SIZE);
     tmp = atoi(tmpArg);
     if (tmp < 0 || tmp > 255)
       ok = false;
@@ -421,7 +420,7 @@ void WebServer::webSave() {
   
 
   // Copy data into our variables
-  ws.arg("nodeName").toCharArray(settings.nodeName, 32);
+  ws.arg("nodeName").toCharArray(settings.nodeName, MAX_STR_SIZE);
 
   // Checkbox for stand alone mode
   settings.standAlone = ws.hasArg("standAlone");
@@ -431,42 +430,27 @@ void WebServer::webSave() {
   __STORE_WS_VAR(d,artNetSub,>,15);
   __STORE_WS_VAR(d,artNetUniA,>,15);
   __STORE_WS_VAR(d,artNetUniB,>,15);
-  __STORE_WS_VAR2(d,hotSpotDelay,<,10,>,65535);
+  __STORE_WS_VAR2(d,wifiTimeout,<,10,>,65535);
   __STORE_WS_ARG2_CONV(d,ledAmplitude,ledIntensity,<,0,>,255,INTENSITY_CONVERT);
   __STORE_WS_ARG2_CONV(d,blinkBpm,blinkTimeoutEighth,<,BLINK_CONVERT(180),>,BLINK_CONVERT(40),BLINK_CONVERT);
   
   // Copy more data into our variables
-  ws.arg("wifiSSID").toCharArray(settings.wifiSSID, 32);
+  ws.arg("wifiSSID").toCharArray(settings.wifiSSID, MAX_STR_SIZE);
   if (ws.arg("wifiPass") != HIDDEN_PASSWORD)
-    ws.arg("wifiPass").toCharArray(settings.wifiPass, 32);
+    ws.arg("wifiPass").toCharArray(settings.wifiPass, MAX_STR_SIZE);
 
   // If DHCP - set variables accordingly
   if (ws.arg("dhcp") == "true") {
     settings.dhcp = true;
-
-    if (wifi.isHotSpot) {
-      settings.ip = WiFi.softAPIP();
-      wifi.ap_ip = WiFi.softAPIP();
-    } else {
-      settings.ip = WiFi.localIP();
-      wifi.ap_ip = WiFi.localIP();
-    }
-    settings.subnet = WiFi.subnetMask();
-    wifi.setBroadcastAddr();
   } 
   // If Static IP - check IPs first, then set if valid
   else {
     IPAddress ip(0,0,0,0);
-    IPAddress broadcast_ip(0,0,0,0);
     IPAddress subnet(0,0,0,0);
 
     // Check IP
     if (!checkIp("ip_",ip))
       ok = false, message += "- Invalid IP Address<br/>";
-
-    // Check broadcast
-    if (!checkIp("broadcast_ip_",broadcast_ip))
-      ok = false, message += "- Invalid Broadcast Address<br/>";
 
     // Check subnet
     if (!checkIp("subnet_",subnet))
@@ -476,7 +460,6 @@ void WebServer::webSave() {
     if (ok) {
       // All IPs are valid, store them
       settings.ip = ip;
-      settings.broadcast_ip = broadcast_ip;
       settings.subnet = subnet;
       settings.dhcp = false;
     }
@@ -671,8 +654,8 @@ void WebServer::webStore() {
     
     // Save a new scene
     } else if (strcmp(tmp, "new") == 0) {
-      char sceneName[32];
-      ws.arg("sceneName").toCharArray(sceneName, 32);
+      char sceneName[MAX_STR_SIZE];
+      ws.arg("sceneName").toCharArray(sceneName, MAX_STR_SIZE);
 
       bool r = store.newScene(sceneName);
 

@@ -16,24 +16,14 @@ void setup()
   settings.setup();
   buttons.setup();
   statusLed.setup();
-
-  // If we cant load settings from EEPROM, start the hotspot
+  
   settings.load();
-  if (statusLed.get() == ERROR_NO_SETTINGS || statusLed.get() == ERROR_SETTINGS_READ)
-    wifi.hotSpot(true);
+  wifi.start();
 
-  // Start hotspot if we're in standAlone mode otherwise we start the wifi
-  if (settings.standAlone)
-    wifi.hotSpot();
-  else
-  {
-    wifi.start();
-  }
-
-  // Start WebServer
-  #ifdef USE_WEBSERVER
+// Start WebServer
+#ifdef USE_WEBSERVER
   webServer.start();
-  #endif
+#endif
 
   // Start DMX
   dmx.start();
@@ -44,40 +34,42 @@ void setup()
 
 void loop()
 {
-  // Check WiFi conection
-  if (!settings.standAlone && wifi.notConnected())
+  // Check Wifi conection
+  if (wifi.hasToReconnect())
   {
-    // Connect WiFi
+    dmx.pause();
+    // Restart wifi
     wifi.start();
+    dmx.unPause();
   }
 
-  // call the read function
-  artnetToDmx.read();
-
-  // handle DNS requests
-  #ifdef USE_DNS
+// handle DNS requests
+#ifdef USE_DNS
   wifi.handleDns();
-  #endif
+#endif
 
-  // Handle web requests
-  #ifdef USE_WEBSERVER
+// Handle web requests
+#ifdef USE_WEBSERVER
   webServer.handleClient();
-  #endif
+#endif
 
   // handle led
   statusLed.handle();
 
   // handle buttons
   buttons.handle();
+  
+  // call the ArtNet read function
+  artnetToDmx.read();
 }
 
 void restart()
 {
   dmx.end();
 
-  statusLed.set(RESTARTING,true);
-  statusLed.set(RESTARTING,true);
-  statusLed.set(RESTARTING,true);
+  statusLed.set(RESTARTING, true);
+  statusLed.set(RESTARTING, true);
+  statusLed.set(RESTARTING, true);
 
   ESP.restart();
 }

@@ -13,14 +13,13 @@ void Settings::setup()
   EEPROM.begin(
       /*status*/ 2 +
 
-      /*nodeName*/ 32 +
-      /*wifiSSID*/ 32 +
-      /*wifiPass*/ 32 +
+      /*nodeName*/ MAX_STR_SIZE +
+      /*wifiSSID*/ MAX_STR_SIZE +
+      /*wifiPass*/ MAX_STR_SIZE +
       /*ip*/ 4 +
-      /*gw*/ 4 +
-      /*broadcast_ip*/ 4 +
+      /*gateway*/ 4 +
       /*subnet*/ 4 +
-      /*hotSpotDelay*/ 2 +
+      /*wifiTimeout*/ 2 +
       /*dhcp*/ 1 +
       /*standAlone*/ 1 +
       /*artNetUniA*/ 1 +
@@ -49,14 +48,13 @@ bool Settings::save()
   char status[2] = {'O', 'K'};
   __SAVE(status, 2);
   // fields
-  __SAVE(nodeName, 32);
-  __SAVE(wifiSSID, 32);
-  __SAVE(wifiPass, 32);
+  __SAVE(nodeName, MAX_STR_SIZE);
+  __SAVE(wifiSSID, MAX_STR_SIZE);
+  __SAVE(wifiPass, MAX_STR_SIZE);
   __SAVE(ip, 4);
-  __SAVE(gw, 4);
-  __SAVE(broadcast_ip, 4);
+  __SAVE(gateway, 4);
   __SAVE(subnet, 4);
-  __SAVE(hotSpotDelay, 2);
+  __SAVE(wifiTimeout, 2);
   __SAVE(dhcp, 1);
   __SAVE(standAlone, 1);
   __SAVE(artNetUniA, 1);
@@ -104,42 +102,48 @@ uint8_t Settings::load()
   if (status[0] != 'O' || status[1] != 'K')
   {
     statusLed.set(ERROR_NO_SETTINGS);
-    return control;
   }
-
-  // read settings
-  __LOAD(nodeName, 32);
-  __LOAD(wifiSSID, 32);
-  __LOAD(wifiPass, 32);
-  __LOAD(ip, 4);
-  __LOAD(gw, 4);
-  __LOAD(broadcast_ip, 4);
-  __LOAD(subnet, 4);
-  __LOAD(hotSpotDelay, 2);
-  __LOAD(dhcp, 1);
-  __LOAD(standAlone, 1);
-  __LOAD(artNetUniA, 1);
-  __LOAD(artNetUniB, 1);
-  __LOAD(artNetSub, 1);
-  __LOAD(ledIntensity, 1);
-  __LOAD(blinkTimeoutEighth, 1);
-
-  uint8_t controlR = 0;
-  uint8_t computedControl = control;
-  __LOAD(controlR, 1);
-
-  if (computedControl != controlR)
+  else
   {
-#ifdef USE_WEBSERVER
-    globalinfo += " re:" + HEX8(computedControl) + " != " + HEX8(controlR);
-#endif
-    statusLed.set(ERROR_SETTINGS_READ);
-    return computedControl;
-  }
+    // read settings
+    __LOAD(nodeName, MAX_STR_SIZE);
+    __LOAD(wifiSSID, MAX_STR_SIZE);
+    __LOAD(wifiPass, MAX_STR_SIZE);
+    __LOAD(ip, 4);
+    __LOAD(gateway, 4);
+    __LOAD(subnet, 4);
+    __LOAD(wifiTimeout, 2);
+    __LOAD(dhcp, 1);
+    __LOAD(standAlone, 1);
+    __LOAD(artNetUniA, 1);
+    __LOAD(artNetUniB, 1);
+    __LOAD(artNetSub, 1);
+    __LOAD(ledIntensity, 1);
+    __LOAD(blinkTimeoutEighth, 1);
 
-  // done
-  statusLed.set(SUCCESS_SETTINGS);
-  return computedControl;
+    uint8_t controlR = 0;
+    uint8_t controlTmp = control;
+    __LOAD(controlR, 1);
+    control = controlTmp;
+
+    if (control != controlR)
+    {
+#ifdef USE_WEBSERVER
+      globalinfo += " re:" + HEX8(control) + " != " + HEX8(controlR);
+#endif
+      statusLed.set(ERROR_SETTINGS_READ);
+    }
+
+    // done
+    statusLed.set(SUCCESS_SETTINGS);
+  }
+  // is there was an error
+  loaded = statusLed.get() == SUCCESS_SETTINGS;
+  if (!loaded)
+    // reset settings to default values
+    setToDefault();
+
+  return control;
 }
 
 void Settings::resetOrRestore()

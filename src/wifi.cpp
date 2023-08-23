@@ -13,178 +13,187 @@
 Wifi wifi;
 
 /**
- *  Connects our WiFi.
- *  If it can't connect and allowHotSpot is set, it will call startHotSpot
+ * @brief Initializes and manages the WiFi connection.
+ *
+ * This function attempts to connect to a predefined WiFi network as configured in settings.
+ * If the device is set to standalone mode, it starts an access point using the settings values.
+ * If both of these attempts fail, it starts an access point with default values for configuration
+ * through a web server if this feature is active.
+ *
+ * If all connection attempts fail, the function triggers a device restart for another attempt.
  */
 void Wifi::start()
 {
-  statusLed.set(WIFI_CONNECTING);
+  bool error = true;
+
+  if (!settings.standAlone
+#ifdef USE_WEBSERVER
+   && HOTSPOT_SSID != settings.wifiSSID
+#endif
+   )
+  {
+    // setup WiFi config
+    setupConfigSta();
+    // try to connect to Wifi defined in settings
+    statusLed.set(WIFI_CONNECTING);
+    error = connect();
+  }
+  else if(settings.standAlone)
+  {
+    statusLed.set(WIFI_HOTSPOT);
+    // start as access point with settings values
+    error = accessPoint(false);
+  }
+
+#ifdef USE_WEBSERVER
+  // If Wifi connection or standAlone modes have failed
+  else
+  {
+    statusLed.set(WIFI_HOTSPOT);
+    // start as access point with default values to configure through the webserver
+    error = accessPoint(true);
+  }
+#endif
+
+  if (error)
+  {
+    // restart and try again
+    restart();
+  }
+
+  statusLed.set(SUCCESS_CONNECTED);
+
+}
+
+void Wifi::setupConfigSta()
+{
+  WiFi.hostname(settings.nodeName);
+
+  // If static address, set our wifi to use it
+  if (!settings.dhcp)
+  {
+    WiFi.config(settings.ip, settings.gateway, settings.subnet);
+  }
+
+  isAp = false;
+}
+
+bool Wifi::connect()
+{
+  bool timeout = false;
+
   // Connect wifi
   WiFi.begin(settings.wifiSSID, settings.wifiPass);
   WiFi.mode(WIFI_STA);
-  WiFi.hostname(settings.nodeName);
 
-  unsigned long connectTime = millis() + settings.hotSpotDelay;
+  unsigned long connectTime = millis() + settings.wifiTimeout;
   // Wait for WiFi to connect
-  while (notConnected())
+  while (isNotConnected() && !timeout)
   {
     // delay to yield to esp core functions
     delay(10);
 
-    // If it hasn't connected within the preset time, start hot spot
-    if (allowHotSpot && millis() > connectTime)
-    {
-      // start our hotspot
-      hotSpot(true);
-    }
+    // update timeout
+    timeout = millis() > connectTime;
 
     // handle buttons and LED
     buttons.handle();
     statusLed.handle();
   }
-  statusLed.set(SUCCESS_CONNECTED);
 
-  // Get MAC Address
-  getMac();
-
-  // If static address, set our wifi to use it
-  if (!settings.dhcp)
+  if (!timeout)
   {
-    WiFi.config(settings.ip, settings.gw, settings.subnet);
+    updateWifiSettings();
   }
+
+  return timeout;
+}
+
+void Wifi::updateWifiSettings()
+{
   // If DHCP, get the IPs
-  else
+  if (settings.dhcp)
   {
-    ap_ip = WiFi.localIP();
-    settings.ip = WiFi.localIP();
-    settings.gw = WiFi.gatewayIP();
+    if (isAp)
+    {
+      settings.ip = WiFi.softAPIP();
+      settings.gateway = settings.ip;
+    }
+    else
+    {
+      settings.ip = WiFi.localIP();
+      settings.gateway = WiFi.gatewayIP();
+    }
     settings.subnet = WiFi.subnetMask();
   }
 
-  // Set our broadcast address
-  setBroadcastAddr();
-
-  allowHotSpot = false;
+  // compute broadcast address
+  computeBroadcast();
 }
 
-/**
- *  This starts our hot spot and webserver.  It doesn't start UDP listner for ArtNet however.
- *  It also resets our device after set timeouts.
- */
-void Wifi::hotSpot(bool def)
+void Wifi::setupConfigAp(IPAddress ap_ip, IPAddress subnet)
 {
-  statusLed.set(WIFI_HOTSPOT);
-  // Let other functions know we're a hot spot now
-  isHotSpot = true;
+  WiFi.hostname(settings.nodeName);
+  WiFi.softAPConfig(ap_ip, ap_ip, subnet);
 
-  // generate the AP ssid & password
-  String ssid = def ? DEFAULT_SSID : settings.wifiSSID;
-  String password = def ? DEFAULT_PASSWORD : settings.wifiPass;
-  ssid += '_';
-  ssid += String(ESP.getChipId(),16);
+  isAp = true;
+}
 
+void Wifi::standAlone(String ssid, String password, IPAddress ap_ip, IPAddress subnet)
+{
+  setupConfigAp(ap_ip, subnet);
   // start softAP
   WiFi.mode(WIFI_AP);
   WiFi.softAP(ssid, password);
-
-  // Get IPs for DHCP
-  if (settings.dhcp)
-  {
-    ap_ip = {192, 168, 42, 1};
-    settings.ip = ap_ip;
-    settings.subnet = IPAddress(255, 255, 255, 0);
-  }
-  // Set IP for Static
-  else
-    ap_ip = settings.ip;
-
-  WiFi.softAPConfig(ap_ip, ap_ip, settings.subnet);
+  // update settings
   delay(100);
-
-  // Set our broadcast address
-  setBroadcastAddr();
-
-  // Get MAC Address
-  getMac();
-
-  #ifdef USE_DNS
-  dnsServer.start(DNS_PORT, "*", ap_ip);
-  #endif
-
-  // If standAlone, return to main loop
-  if (settings.standAlone)
-    return;
-
-  // Start webServer
-  #ifdef USE_WEBSERVER
-  webServer.start();
-  #endif
-
-  // Set timer
-  unsigned long startTime = millis();
-
-  // Status LEDs
-  statusLed.set(WIFI_WAIT_CLIENT);
-  // wait for clients to connect
-  while ((millis() - startTime) < TIMEOUT_WAIT_CLIENT)
-  {
-    // check for any clients connected to the hotspot
-    if (wifi_softap_get_station_num() != 0)
-    {
-      // Status LEDs
-      statusLed.set(WIFI_HANDLE_CLIENT);
-      // main loop
-      while (true)
-      {
-        // handle DNS requests
-        #ifdef USE_DNS
-        handleDns();
-        #endif
-        // handle web requests only when in hotSpot mode
-        #ifdef USE_WEBSERVER
-        webServer.handleClient();
-        #endif
-
-        // reset timer when a client is connected
-        if (wifi_softap_get_station_num() != 0)
-          startTime = millis();
-
-        // if timer reaches timeout, reset the node
-        if ((millis() - startTime) > TIMEOUT_END_CLIENT)
-          restart();
-
-        // handle buttons
-        buttons.handle();
-        // handle Status LEDs
-        statusLed.handle();
-
-        // yield to core esp functions
-        delay(10);
-      }
-    }
-
-    // handle DNS requests
-    #ifdef USE_DNS
-    handleDns();
-    #endif
-    // handle buttons
-    buttons.handle();
-    // handle Status LEDs
-    statusLed.handle();
-
-    // yield to core esp functions
-    delay(10);
-  }
-
-  restart();
+  updateWifiSettings();
 }
 
-/* setBroadcastAddr()
+/**
+ * Configures and activates the Access Point (AP) mode for Wi-Fi.
+ *
+ * @param def Use default hotspot configuration if true, otherwise use settings configuration.
+ */
+bool Wifi::accessPoint(bool def)
+{
+  String ssid, password;
+  uint32_t ap_ip, subnet;
+
+#ifdef USE_WEBSERVER
+  if (def)
+  {
+    // use hotspot config
+    ssid = HOTSPOT_SSID;
+    password = HOTSPOT_PASSWORD;
+    ap_ip = IPAddress(HOTSPOT_IP);
+    subnet = IPAddress(HOTSPOT_SUBNET);
+  }
+  else
+#endif
+  {
+    // use settings config
+    ssid = settings.wifiSSID;
+    password = settings.wifiPass;
+    ap_ip = settings.dhcp ? IPAddress(DEFAULT_IP) : IPAddress(settings.ip);
+    subnet = settings.dhcp ? IPAddress(DEFAULT_SUBNET) : IPAddress(settings.subnet);
+  }
+
+  standAlone(ssid, password, ap_ip, subnet);
+
+#ifdef USE_DNS
+  dnsServer.start(DNS_PORT, "*", ap_ip);
+#endif
+
+  return true;
+}
+
+/**
  *  Calculates and sets the broadcast address using the IP and subnet
  */
-void Wifi::setBroadcastAddr()
+void Wifi::computeBroadcast()
 {
-  settings.broadcast_ip = ~settings.subnet | (settings.ip & settings.subnet);
+  broadcast_ip = ~settings.subnet | (settings.ip & settings.subnet);
 }
 
 /* getMac()
@@ -205,7 +214,7 @@ String Wifi::getMac()
   return MAC_address;
 }
 
-bool Wifi::notConnected()
+bool Wifi::isNotConnected()
 {
   return WiFi.status() != WL_CONNECTED;
 }
@@ -213,7 +222,7 @@ bool Wifi::notConnected()
 #ifdef USE_DNS
 void Wifi::handleDns()
 {
-  if (isHotSpot)
+  if (isAp)
     dnsServer.processNextRequest();
 };
 #endif

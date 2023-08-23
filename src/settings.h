@@ -10,16 +10,24 @@
 #define USE_DNS
 #define USE_WEBSERVER
 
+#define MAX_STR_SIZE 32
+
 // Wifi
+// /!\ size of strings should be < MAX_STR_SIZE
 #define DEFAULT_NODE "ArtNet2DMX"
 #define DEFAULT_SSID "ArtNet2DMX"
 #define DEFAULT_PASSWORD "ArtNet2DMX"
+#ifdef USE_WEBSERVER
+#define HOTSPOT_SSID ("ArtNet2DMX" + '_' + String(ESP.getChipId(), 16))
+#define HOTSPOT_PASSWORD "ArtNet2DMX"
+#define HOTSPOT_IP 192, 168, 42, 1
+#define HOTSPOT_SUBNET 255, 255, 255, 0
+#endif
 #define TIMEOUT_WAIT_CLIENT 60000
 #define TIMEOUT_END_CLIENT 120000
 #define CONNECT_TIMEOUT 30000
 #define DEFAULT_IP 192, 168, 42, 1
 #define DEFAULT_GW 192, 168, 42, 1
-#define DEFAULT_BROADCAST 192, 168, 42, 255
 #define DEFAULT_SUBNET 255, 255, 255, 0
 #define DEFAULT_DHCP true;
 #define DEFAULT_STANDALONE false;
@@ -51,23 +59,46 @@
 
 class Settings
 {
-public:
-  char nodeName[32] = DEFAULT_NODE;
-  char wifiSSID[32] = DEFAULT_SSID;
-  char wifiPass[32] = DEFAULT_PASSWORD;
-  uint32_t ip = IPAddress(DEFAULT_IP);
-  uint32_t gw = IPAddress(DEFAULT_GW);
-  uint32_t broadcast_ip = IPAddress(DEFAULT_BROADCAST);
-  uint32_t subnet = IPAddress(DEFAULT_SUBNET);
-  uint16_t hotSpotDelay = CONNECT_TIMEOUT;
-  bool dhcp = DEFAULT_DHCP;
-  bool standAlone = DEFAULT_STANDALONE;
-  uint8_t artNetUniA = DEFAULT_ARTNETUNIA;
-  uint8_t artNetUniB = DEFAULT_ARTNETUNIB;
-  uint8_t artNetSub = DEFAULT_ARTNETSUB;
-  uint8_t ledIntensity = DEFAULT_LED_INTENSITY;
-  uint8_t blinkTimeoutEighth = BLINK_CONVERT(DEFAULT_BLINK_BPM);
+  inline void setToDefault()
+  {
+    strcpy(nodeName, DEFAULT_NODE);
+    strcpy(wifiSSID, DEFAULT_SSID);
+    strcpy(wifiPass, DEFAULT_PASSWORD);
+    ip = IPAddress(DEFAULT_IP);
+    gateway = IPAddress(DEFAULT_GW);
+    subnet = IPAddress(DEFAULT_SUBNET);
+    wifiTimeout = CONNECT_TIMEOUT;
+    dhcp = DEFAULT_DHCP;
+    standAlone = DEFAULT_STANDALONE;
+    artNetUniA = DEFAULT_ARTNETUNIA;
+    artNetUniB = DEFAULT_ARTNETUNIB;
+    artNetSub = DEFAULT_ARTNETSUB;
+    ledIntensity = DEFAULT_LED_INTENSITY;
+    blinkTimeoutEighth = BLINK_CONVERT(DEFAULT_BLINK_BPM);
+    loaded = false;
+  }
 
+  // transient fields
+  bool loaded;
+
+public:
+  // saved fields
+  char nodeName[MAX_STR_SIZE];
+  char wifiSSID[MAX_STR_SIZE];
+  char wifiPass[MAX_STR_SIZE];
+  uint32_t ip;
+  uint32_t gateway;
+  uint32_t subnet;
+  uint16_t wifiTimeout;
+  bool dhcp;
+  bool standAlone;
+  uint8_t artNetUniA;
+  uint8_t artNetUniB;
+  uint8_t artNetSub;
+  uint8_t ledIntensity;
+  uint8_t blinkTimeoutEighth;
+
+  inline Settings() { setToDefault(); }
   void setup();
   bool save();
   uint8_t load();

@@ -12,25 +12,34 @@ class Wifi
 {
 private:
   uint8_t MAC_array[6];
-  bool allowHotSpot = true;
   String MAC_address;
+  bool isAp = false;
 
-  #ifdef USE_DNS
+#ifdef USE_DNS
   DNSServer dnsServer;
-  #endif
+#endif
+
+  bool connect();
+  void setupConfigSta();
+  bool accessPoint(bool def = false);
+  void standAlone(String ssid, String password, IPAddress ap_ip, IPAddress subnet);
+  void setupConfigAp(IPAddress ap_ip, IPAddress subnet);
+  void updateWifiSettings();
 
 public:
-  IPAddress ap_ip = IPAddress(2, 0, 0, 10);
-  bool isHotSpot = false;
-
-  void setBroadcastAddr();
-  void hotSpot(bool def = false);
+  void computeBroadcast();
   void start();
   String getMac();
-  bool notConnected();
-  #ifdef USE_DNS
+  bool isNotConnected();
+#ifdef USE_DNS
   void handleDns();
-  #endif
+#endif
+
+  inline bool hasToReconnect()
+  {
+    return !isAp && isNotConnected();
+  }
+  uint32_t broadcast_ip;
 };
 extern Wifi wifi;
 
