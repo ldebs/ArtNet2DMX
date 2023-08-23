@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License along with thi
 If not, see http://www.gnu.org/licenses/
 */
 
-#include "espDMX/espDMX.h"
+#include "espDMX.h"
 
 #include <stdlib.h>
 #include <stdio.h>
