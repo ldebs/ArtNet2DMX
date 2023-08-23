@@ -86,5 +86,9 @@ public:
 
 extern StatusLed statusLed;
 extern Buttons buttons;
+
+#ifdef USE_WEBSERVER
 extern String globalinfo;
+#endif
+
 #endif

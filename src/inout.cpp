@@ -3,7 +3,9 @@
 #include "flags.h"
 #include "main.h"
 
+#ifdef USE_WEBSERVER
 String globalinfo;
+#endif
 
 StatusLed statusLed;
 Buttons buttons;
