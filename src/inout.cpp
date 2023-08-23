@@ -105,47 +105,53 @@ void Buttons::handle()
   int but1Read = digitalRead(PIN_BUT1);
   if (but1Read == BUT1_PUSHED)
   {
-    if (but1 == 0)
+    if (but1Millis == 0)
     {
-      but1 = millis();
-      up();
+      but1Millis = millis();
+      up(PIN_BUT1);
     }
-    on();
+    on(PIN_BUT1);
   }
   else
   {
-    if (but1 != 0)
+    if (but1Millis != 0)
     {
-      down();
-      but1 = 0;
+      down(PIN_BUT1);
+      but1Millis = 0;
     }
   }
 }
 
-void Buttons::up() {}
+void Buttons::up(uint8_t butId) {}
 
-void Buttons::on()
+void Buttons::on(uint8_t butId)
 {
-  ulong since = millis() - but1;
-  if (since > 10000 && statusLed.get() != RESET_OR_RESTORE)
+  if (butId == PIN_BUT1)
   {
-    statusLed.set(RESET_OR_RESTORE, true);
-  }
-  else if (since > 500 && statusLed.get() != RESET && statusLed.get() != RESET_OR_RESTORE)
-  {
-    statusLed.set(RESET, true);
+    ulong since = millis() - but1Millis;
+    if (since > 10000 && statusLed.get() != RESET_OR_RESTORE)
+    {
+      statusLed.set(RESET_OR_RESTORE, true);
+    }
+    else if (since > 500 && statusLed.get() != RESET && statusLed.get() != RESET_OR_RESTORE)
+    {
+      statusLed.set(RESET, true);
+    }
   }
 }
 
-void Buttons::down()
+void Buttons::down(uint8_t butId)
 {
-  ulong since = millis() - but1;
-  if (since > 10000)
+  if (butId == PIN_BUT1)
   {
-    settings.resetOrRestore();
-  }
-  if (since > 500)
-  {
-    restart();
+    ulong since = millis() - but1Millis;
+    if (since > 10000)
+    {
+      settings.resetOrRestore();
+    }
+    if (since > 500)
+    {
+      restart();
+    }
   }
 }

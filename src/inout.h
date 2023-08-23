@@ -75,10 +75,10 @@ public:
 
 class Buttons{
 private:
-  unsigned long but1 = 0;
-  void up();
-  void on();
-  void down();
+  unsigned long but1Millis = 0;
+  void up(uint8_t butId);
+  void on(uint8_t butId);
+  void down(uint8_t butId);
 public:
   void setup();
   void handle();
