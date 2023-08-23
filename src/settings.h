@@ -25,17 +25,13 @@
 #define DEFAULT_STANDALONE false;
 
 // ArtNet
-#define DEFAULT_ARTNETUNIA = 0;
-#define DEFAULT_ARTNETUNIB = 1;
-#define DEFAULT_ARTNETSUB = 0;
+#define DEFAULT_ARTNETUNIA 0;
+#define DEFAULT_ARTNETUNIB 1;
+#define DEFAULT_ARTNETSUB 0;
 
 // button 1
 #define PIN_BUT1 5
 #define BUT1_PUSHED LOW
-
-// dmx
-#define PIN_D1 1
-#define PIN_D2 2
 
 // status leds
 #define DEFAULT_BLINK_BPM 60
@@ -47,11 +43,11 @@
 #define BLINK_CONVERT(x) (60000. / (x * 8.))
 #define INTENSITY_CONVERT(x) (255. * x / (510. - x))
 #define INTENSITY_UNCONVERT(y) (510. * y / (y + 255.))
-#define BIN4(nibble) String((nibble)&0x8?1:0) + ((nibble)&0x4?1:0) + ((nibble)&0x2?1:0) + ((nibble)&0x1?1:0)
+#define BIN4(nibble) String((nibble)&0x8 ? 1 : 0) + ((nibble)&0x4 ? 1 : 0) + ((nibble)&0x2 ? 1 : 0) + ((nibble)&0x1 ? 1 : 0)
 #define BIN8(byte) BIN4((byte) >> 4) + BIN4(byte)
 #define BIN16(short) BIN8((short) >> 8) + " " + BIN8((short))
-#define HEX8(byte) String((byte) >> 4, 16) + String((byte) & 0xf, 16)
-#define HEX16(short) HEX8((short) >> 8) + " " + HEX8((short) & 0xFF)
+#define HEX8(byte) String((byte) >> 4, 16) + String((byte)&0xf, 16)
+#define HEX16(short) HEX8((short) >> 8) + " " + HEX8((short)&0xFF)
 
 class Settings
 {

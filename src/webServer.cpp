@@ -1,5 +1,7 @@
 #include "webServer.h"
 
+#ifdef USE_WEBSERVER
+
 #include "main.h"
 #include "wifi.h"
 #include "dmx.h"
@@ -323,7 +325,7 @@ void WebServer::webHome() {
   if (settings.dhcp)
     message += " style='display:none;'";
   message += "><td class='left'>Broadcast IP</td>\n";
-  for (int x = 0; x < 4; x++) {
+    for (int x = 0; x < 4; x++) {
     message += "<td><input type='number' name='broadcast_ip_";
     message += char(x+48);
     message += "' value='"
@@ -770,3 +772,5 @@ void WebServer::webStore() {
   // Restart DMX interupts
   dmx.unPause();
 }
+
+#endif

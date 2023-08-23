@@ -3,6 +3,8 @@
 
 #include "settings.h"
 
+#ifdef USE_WEBSERVER
+
 #include <ESP8266WebServer.h>
 
 class WebServer
@@ -30,5 +32,7 @@ public:
   inline void handleClient() { ws.handleClient(); }
 };
 extern WebServer webServer;
+
+#endif
 
 #endif

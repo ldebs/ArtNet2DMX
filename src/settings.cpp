@@ -75,7 +75,9 @@ bool Settings::save()
 
   if (computedControl != controlR)
   {
+#ifdef USE_WEBSERVER
     globalinfo += " we:" + HEX8(computedControl) + " != " + HEX8(controlR);
+#endif
     statusLed.set(ERROR_SETTINGS_WRITE);
     return false;
   }
@@ -128,7 +130,9 @@ uint8_t Settings::load()
 
   if (computedControl != controlR)
   {
+#ifdef USE_WEBSERVER
     globalinfo += " re:" + HEX8(computedControl) + " != " + HEX8(controlR);
+#endif
     statusLed.set(ERROR_SETTINGS_READ);
     return computedControl;
   }
