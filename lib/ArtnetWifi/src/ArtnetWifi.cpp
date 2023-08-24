@@ -47,20 +47,42 @@ uint16_t ArtnetWifi::read(void)
   if (packetSize <= MAX_BUFFER_ARTNET && packetSize > 0)
   {
       senderIp =  Udp.remoteIP();
-      Udp.read(artnetPacket, MAX_BUFFER_ARTNET);
+      int nbRead = Udp.read(artnetPacket, MAX_BUFFER_ARTNET);
+      if((nbRead-=8)<0) return 0; // not enougth bytes read
 
       // Check that packetID is "Art-Net" else ignore
       if (memcmp(artnetPacket, artnetId, sizeof(artnetId)) != 0) {
         return 0;
       }
 
+      if((nbRead-=2)<0) return 0; // not enougth bytes read
       opcode = artnetPacket[8] | artnetPacket[9] << 8;
 
       if (opcode == ART_DMX)
       {
+        // protocol version
+        if((nbRead-=2)<0) return 0; // not enougth bytes read
+        uint16_t protVer = artnetPacket[10] << 8 | artnetPacket[11];
+        if(protVer<14) return 0; // bad protocol version
+
+        if((nbRead-=1)<0) return 0; // not enougth bytes read
         sequence = artnetPacket[12];
-        incomingUniverse = artnetPacket[14] | artnetPacket[15] << 8;
-        dmxDataLength = artnetPacket[17] | artnetPacket[16] << 8;
+
+        if((nbRead-=1)<0) return 0; // not enougth bytes read
+        physical = artnetPacket[13];
+
+        if((nbRead-=2)<0) return 0; // not enougth bytes read
+        uint8_t subUni = artnetPacket[14];
+        uint8_t net = artnetPacket[15];
+        incomingUniverse = net << 8 | subUni;
+
+        if((nbRead-=2)<0) return 0; // not enougth bytes read
+        dmxDataLength = artnetPacket[16] << 8 | artnetPacket[17];
+        if(dmxDataLength<2 || dmxDataLength>512) return 0; // bad value
+        /* ignored
+        if(dmxDataLength%2 == 1) return 0; // should be even
+        */
+        if((nbRead-=dmxDataLength)<0) return 0; // not enougth bytes read
 
         if (artDmxCallback) (*artDmxCallback)(incomingUniverse, dmxDataLength, sequence, artnetPacket + ART_DMX_START);
         if (artDmxFunc) {
@@ -91,19 +113,19 @@ uint16_t ArtnetWifi::makePacket(void)
   artnetPacket[8] = opcode;
   artnetPacket[9] = opcode >> 8;
   version = 14;
-  artnetPacket[11] = version;
   artnetPacket[10] = version >> 8;
+  artnetPacket[11] = version;
   artnetPacket[12] = sequence;
   sequence++;
-  if (!sequence) {
+  if (sequence == 0) {
     sequence = 1;
   }
   artnetPacket[13] = physical;
   artnetPacket[14] = outgoingUniverse;
   artnetPacket[15] = outgoingUniverse >> 8;
   len = dmxDataLength + (dmxDataLength % 2); // make a even number
-  artnetPacket[17] = len;
   artnetPacket[16] = len >> 8;
+  artnetPacket[17] = len;
 
   return len;
 }
