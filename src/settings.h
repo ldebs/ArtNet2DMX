@@ -7,8 +7,8 @@
 #define FIRMWARE_VERSION "v2.0.0"
 
 // Features
-#define USE_DNS
-#define USE_WEBSERVER
+// #define USE_DNS
+// #define USE_WEBSERVER
 
 #define MAX_STR_SIZE 32
 
