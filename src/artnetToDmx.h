@@ -9,6 +9,7 @@ class ArtnetToDmx
 {
 private:
   ArtnetWifi artnet;
+  static uint8_t lastSequence;
   static void onDmxFrame(uint16_t universe, uint16_t length, uint8_t sequence, uint8_t* data);
 public:
   void start();
