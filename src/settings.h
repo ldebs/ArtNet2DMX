@@ -42,8 +42,8 @@
 #define BUT1_PUSHED LOW
 
 // status leds
-#define DEFAULT_BLINK_BPM 60
-#define DEFAULT_LED_INTENSITY 20
+#define DEFAULT_BLINK_BPM 50
+#define DEFAULT_LED_INTENSITY 15
 #define PIN_LED_R 12
 #define PIN_LED_G 14
 
