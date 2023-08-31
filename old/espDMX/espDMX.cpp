@@ -30,8 +30,12 @@ If not, see http://www.gnu.org/licenses/
 #define UART_TX_FIFO_SIZE 0x80
 
 // Declaration of two DMX instances
+#ifndef DEBUG_SERIAL
 espDMX dmxA(0);
+#endif
+#ifdef USE_DMXB
 espDMX dmxB(1);
+#endif
 
 // Function prototypes
 static void uart_ignore_char(char c);
@@ -39,17 +43,21 @@ static void uart_ignore_char(char c);
 // Interrupt handler for DMX interrupts
 void ICACHE_RAM_ATTR espdmx_interrupt_handler()
 {
+#ifndef DEBUG_SERIAL
     if (U0IS & (1 << UIFE))
     {                       // Check status flag for UART0
         U0IC = (1 << UIFE); // Clear status flag
         dmxA.transmit();    // Call interrupt function for UART0
     }
+#endif
 
+#ifdef USE_DMXB
     if (U1IS & (1 << UIFE))
     {                       // Check status flag for UART1
         U1IC = (1 << UIFE); // Clear status flag
         dmxB.transmit();    // Call interrupt function for UART1
     }
+#endif
 }
 
 // Transmit DMX data
@@ -75,7 +83,8 @@ void espDMX::transmit()
 
             // Limit the transmission size based on available FIFO room
             remainingCh = (remainingCh > fifoSize) ? fifoSize : remainingCh;
-
+            
+            DEBUG("E"+String(remainingCh));
             // Set the DMX data on uART FIFO
             for (; remainingCh; --remainingCh)
                 USF(universe) = chValues[curCh++];
@@ -96,11 +105,10 @@ void espDMX::transmit()
         disarmInterrupt();
 
         // Wait for the UART TX FIFO to be empty
+        DEBUG("Ew");
         while (((USS(universe) >> USTXC) & 0xff) != 0)
         {
-            if(handleIO)
-                handleIO();
-            yield();
+            DEBUG("w");
         }
 
         // Allow the last channel to be fully sent before BREAK
@@ -225,8 +233,10 @@ void espDMX::clearBuffer()
 void espDMX::init()
 {
 
+#ifndef DEBUG_SERIAL
     system_set_os_print(0);
     ets_install_putc1(&uart_ignore_char);
+#endif
 
     // Initialize variables
     txPin = (universe == 0) ? 1 : 2;

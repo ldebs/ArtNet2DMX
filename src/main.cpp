@@ -13,6 +13,7 @@
 
 void setup()
 {
+  DEBUG_BEGIN();
   settings.setup();
   buttons.setup();
   statusLed.setup();
@@ -26,7 +27,7 @@ void setup()
 #endif
 
   // Start DMX
-  dmx.start();
+  dmx.setup();
 
   // Start listening for ArtNet UDP packets
   artnetToDmx.start();
@@ -34,9 +35,11 @@ void setup()
 
 void loop()
 {
+  DEBUG("L{");
   // Check Wifi conection
   if (wifi.hasToReconnect())
   {
+    DEBUG("Lw");
     dmx.pause();
     // Restart wifi
     wifi.start();
@@ -45,27 +48,37 @@ void loop()
 
 // handle DNS requests
 #ifdef USE_DNS
+  DEBUG("Ld");
   wifi.handleDns();
 #endif
 
 // Handle web requests
 #ifdef USE_WEBSERVER
+  DEBUG("Ls");
   webServer.handleClient();
 #endif
 
   // handle led
+  DEBUG("Ll");
   statusLed.handle();
 
   // handle buttons
+  DEBUG("Lb");
   buttons.handle();
   
   // call the ArtNet read function
+  DEBUG("La");
   artnetToDmx.read();
+
+  DEBUG("Lx");
+  dmx.handleDmx();
+
+  DEBUGLN("}L");
 }
 
 void restart()
 {
-  dmx.end();
+  dmx.pause();
 
   statusLed.set(RESTARTING, true);
   statusLed.set(RESTARTING, true);

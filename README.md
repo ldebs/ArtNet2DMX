@@ -18,6 +18,7 @@ ArtNet2DMX is a versatile ESP8266-based project that functions as an Art-Net to 
 Before getting started, make sure you have the following:
 
 - An ESP8266-based development board (e.g., NodeMCU, Wemos D1 Mini).
+- A MAX485 Module and AMS1117 and some LEDs and resitors (see my [OSHW Lab](https://oshwlab.com/ldebat/artnet2dmx) project for wiring)
 - Access to a WiFi network.
 - Art-Net-compatible software or controller for sending lighting control data.
 - Basic knowledge of the DMX lighting control protocol.
@@ -27,7 +28,7 @@ Before getting started, make sure you have the following:
 
 1. Clone or download this repository to your development environment.
 2. Open the project in PlatformIO.
-3. Customize the settings in the `settings.h` file to match your setup.
+3. Customize the settings in the `lib/Settings/settings.h` file to match your setup.
 4. Upload the firmware to your ESP8266 using PlatformIO.
 
 ## Initial Configuration
@@ -59,12 +60,12 @@ All configuration settings, including pin assignments, access point names, timeo
 
 Permissions beyond the scope of this license may be available at [https://www.ldebs.org/artnet2dmx](https://www.ldebs.org/artnet2dmx).
 
-The [espDMX](src/espDMX/README.md) library is a derivative work based on the espDMX library written by [Matthew Tong](https://github.com/mtongnz/espDMX) and is provided under the terms of the GNU General Public License, Version 3 (GPL-3.0). You can find a copy of the license in the [LICENSE](src/espDMX/LICENSE) file.
-
 ## Acknowledgments
 
-- This project is based on the work of Matthew Tong and the [ESP8266_ArtNetNode_DMX](https://github.com/mtongnz/ESP8266_ArtNetNode_DMX) project. Many thanks to Matthew for his work.
+- This project is based on the work of Matthew Tong and the [ESP8266_ArtNetNode_DMX](https://github.com/mtongnz/ESP8266_ArtNetNode_DMX) project and Robert Oostenveld and the [esp8266_artnet_dmx512](https://github.com/robertoostenveld/esp8266_artnet_dmx512) project. Many thanks to Matthew and Robert for their work.
 - The ESP8266 community for their excellent work in developing the ESP8266 platform.
 - The Art-Net protocol developers for enabling versatile lighting control.
 
 Feel free to contribute to this project or report any issues you encounter. Enjoy wireless lighting control with ArtNet2DMX!
+
+Feel free to [buy me a coffee](https://www.buymeacoffee.com/ldebs) ^^

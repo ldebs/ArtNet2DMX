@@ -234,15 +234,19 @@ void WebServer::webHome() {
       + String(settings.artNetSub)
       + "' min=0 max=15 class='number'></td></tr>\n";
 
+#ifndef DEBUG_SERIAL
   message += "<tr><td class='left'>Universe A</td><td colspan=4>\n"
       "<input type='number' name='artNetUniA' value='"
       + String(settings.artNetUniA)
       + "' min=0 max=15 class='number'></td></tr>\n";
+#endif
 
+#ifdef USE_DMXB
   message += "<tr><td class='left'>Universe B</td><td colspan=4>\n"
       "<input type='number' name='artNetUniB' value='"
       + String(settings.artNetUniB)
       + "' min=0 max=15 class='number'></td></tr>\n";
+#endif
 
 
 
@@ -428,8 +432,12 @@ void WebServer::webSave() {
   // Get numbers
   double d;
   __STORE_WS_VAR(d,artNetSub,>,15);
+#ifndef DEBUG_SERIAL
   __STORE_WS_VAR(d,artNetUniA,>,15);
+#endif
+#ifdef USE_DMXB
   __STORE_WS_VAR(d,artNetUniB,>,15);
+#endif
   __STORE_WS_VAR2(d,wifiTimeout,<,10,>,65535);
   __STORE_WS_ARG2_CONV(d,ledAmplitude,ledIntensity,<,0,>,255,INTENSITY_CONVERT);
   __STORE_WS_ARG2_CONV(d,blinkBpm,blinkTimeoutEighth,<,BLINK_CONVERT(180),>,BLINK_CONVERT(40),BLINK_CONVERT);
@@ -537,7 +545,7 @@ void WebServer::webCSS() {
  */
 void WebServer::webFirmwareUpdate() {
   // Stop DMX so webserver is more responsive
-  dmx.end();
+  dmx.pause();
   
   // Generate the webpage from the variables above
   String fail = getFlashString(page_head) + getFlashString(firmware_fail);
@@ -559,7 +567,7 @@ void WebServer::webFirmwareUpdate() {
  */
 void WebServer::webFirmwareUpload() {
   // Stop DMX so webserver is more responsive
-  dmx.end();
+  dmx.pause();
   
   HTTPUpload& upload = ws.upload();
   

@@ -28,6 +28,7 @@ THE SOFTWARE.
 #ifndef ARTNET_WIFI_H
 #define ARTNET_WIFI_H
 
+#include <settings.h>
 #include <functional>
 #include <Arduino.h>
 #if defined(ARDUINO_ARCH_ESP32) || defined(ESP32) || defined(ARDUINO_RASPBERRY_PI_PICO_W)

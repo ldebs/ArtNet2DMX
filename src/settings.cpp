@@ -22,8 +22,12 @@ void Settings::setup()
       /*wifiTimeout*/ 2 +
       /*dhcp*/ 1 +
       /*standAlone*/ 1 +
+#ifndef DEBUG_SERIAL
       /*artNetUniA*/ 1 +
+#endif
+#ifdef USE_DMXB
       /*artNetUniB*/ 1 +
+#endif
       /*artNetSub*/ 1 +
       /*ledIntensity*/ 1 +
       /*blinkTimeoutEighth*/ 1 +
@@ -57,8 +61,12 @@ bool Settings::save()
   __SAVE(wifiTimeout, 2);
   __SAVE(dhcp, 1);
   __SAVE(standAlone, 1);
+#ifndef DEBUG_SERIAL
   __SAVE(artNetUniA, 1);
+#endif
+#ifdef USE_DMXB
   __SAVE(artNetUniB, 1);
+#endif
   __SAVE(artNetSub, 1);
   __SAVE(ledIntensity, 1);
   __SAVE(blinkTimeoutEighth, 1);
@@ -115,8 +123,12 @@ uint8_t Settings::load()
     __LOAD(wifiTimeout, 2);
     __LOAD(dhcp, 1);
     __LOAD(standAlone, 1);
+#ifndef DEBUG_SERIAL
     __LOAD(artNetUniA, 1);
+#endif
+#ifdef USE_DMXB
     __LOAD(artNetUniB, 1);
+#endif
     __LOAD(artNetSub, 1);
     __LOAD(ledIntensity, 1);
     __LOAD(blinkTimeoutEighth, 1);

@@ -46,6 +46,7 @@ uint16_t ArtnetWifi::read(void)
 
   if (packetSize <= MAX_BUFFER_ARTNET && packetSize > 0)
   {
+    DEBUG("A"+String(packetSize));
       senderIp =  Udp.remoteIP();
       int nbRead = Udp.read(artnetPacket, MAX_BUFFER_ARTNET);
       if((nbRead-=8)<0) return 0; // not enougth bytes read
@@ -83,6 +84,8 @@ uint16_t ArtnetWifi::read(void)
         if(dmxDataLength%2 == 1) return 0; // should be even
         */
         if((nbRead-=dmxDataLength)<0) return 0; // not enougth bytes read
+        
+        DEBUG("Ac");
 
         if (artDmxCallback) (*artDmxCallback)(incomingUniverse, dmxDataLength, sequence, artnetPacket + ART_DMX_START);
         if (artDmxFunc) {
@@ -162,23 +165,23 @@ void ArtnetWifi::setByte(uint16_t pos, uint8_t value)
 
 void ArtnetWifi::printPacketHeader(void)
 {
-  Serial.print("packet size = ");
-  Serial.print(packetSize);
-  Serial.print("\topcode = ");
-  Serial.print(opcode, HEX);
-  Serial.print("\tuniverse number = ");
-  Serial.print(incomingUniverse);
-  Serial.print("\tdata length = ");
-  Serial.print(dmxDataLength);
-  Serial.print("\tsequence n0. = ");
-  Serial.println(sequence);
+  DEBUG("packet size = ");
+  DEBUG(packetSize);
+  DEBUG("\topcode = ");
+  DEBUG(opcode, HEX);
+  DEBUG("\tuniverse number = ");
+  DEBUG(incomingUniverse);
+  DEBUG("\tdata length = ");
+  DEBUG(dmxDataLength);
+  DEBUG("\tsequence n0. = ");
+  DEBUGLN(sequence);
 }
 
 void ArtnetWifi::printPacketContent(void)
 {
   for (uint16_t i = ART_DMX_START ; i < dmxDataLength ; i++){
-    Serial.print(artnetPacket[i], DEC);
-    Serial.print("  ");
+    DEBUG(artnetPacket[i], DEC);
+    DEBUG("  ");
   }
-  Serial.println('\n');
+  DEBUGLN('\n');
 }

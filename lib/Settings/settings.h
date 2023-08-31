@@ -7,10 +7,17 @@
 #define FIRMWARE_VERSION "v2.0.0"
 
 // Features
-// #define USE_DNS
-// #define USE_WEBSERVER
+#define USE_DNS
+#define USE_WEBSERVER
+//#define DEBUG_SERIAL
+#define USE_DMXB
 
 #define MAX_STR_SIZE 32
+
+// USE DMXB if debug Serial is used instead of DMXA
+#if defined(DEBUG_SERIAL) && !defined(USE_DMXB)
+#define USE_DMXB
+#endif
 
 // Wifi
 // /!\ size of strings should be < MAX_STR_SIZE
@@ -33,8 +40,12 @@
 #define DEFAULT_STANDALONE false;
 
 // ArtNet
+#ifndef DEBUG_SERIAL
 #define DEFAULT_ARTNETUNIA 0;
+#endif
+#ifdef USE_DMXB
 #define DEFAULT_ARTNETUNIB 1;
+#endif
 #define DEFAULT_ARTNETSUB 0;
 
 // button 1
@@ -56,6 +67,15 @@
 #define BIN16(short) BIN8((short) >> 8) + " " + BIN8((short))
 #define HEX8(byte) String((byte) >> 4, 16) + String((byte)&0xf, 16)
 #define HEX16(short) HEX8((short) >> 8) + " " + HEX8((short)&0xFF)
+#ifdef DEBUG_SERIAL
+#define DEBUG_BEGIN() Serial.begin(115200)
+#define DEBUG(...) Serial.print(__VA_ARGS__)
+#define DEBUGLN(...) Serial.println(__VA_ARGS__)
+#else
+#define DEBUG_BEGIN()
+#define DEBUG(...)
+#define DEBUGLN(...)
+#endif
 
 class Settings
 {
@@ -70,8 +90,12 @@ class Settings
     wifiTimeout = CONNECT_TIMEOUT;
     dhcp = DEFAULT_DHCP;
     standAlone = DEFAULT_STANDALONE;
+#ifndef DEBUG_SERIAL
     artNetUniA = DEFAULT_ARTNETUNIA;
+#endif
+#ifdef USE_DMXB
     artNetUniB = DEFAULT_ARTNETUNIB;
+#endif
     artNetSub = DEFAULT_ARTNETSUB;
     ledIntensity = DEFAULT_LED_INTENSITY;
     blinkTimeoutEighth = BLINK_CONVERT(DEFAULT_BLINK_BPM);
@@ -92,8 +116,12 @@ public:
   uint16_t wifiTimeout;
   bool dhcp;
   bool standAlone;
+#ifndef DEBUG_SERIAL
   uint8_t artNetUniA;
+#endif
+#ifdef USE_DMXB
   uint8_t artNetUniB;
+#endif
   uint8_t artNetSub;
   uint8_t ledIntensity;
   uint8_t blinkTimeoutEighth;

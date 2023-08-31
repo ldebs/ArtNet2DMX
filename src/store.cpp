@@ -1,6 +1,7 @@
 #include "store.h"
 
-#include "espDMX.h"
+#include "dmx.h"
+
 #ifdef USE_WEBSERVER
 #include "webServer.h"
 #endif
@@ -48,12 +49,17 @@ bool Store::sceneSave(uint16_t sceneNum){
     return 0;
 
   // Get pointers to our DMX data buffers
-  byte* dmxDataA = dmxA.getChValues();
-  byte* dmxDataB = dmxB.getChValues();
+#ifndef DEBUG_SERIAL
+  byte* dmxDataA = dmx.getDmx(true).dmxData;
+#endif
+#ifdef USE_DMXB
+  byte* dmxDataB = dmx.getDmx(false).dmxData;
+#endif
 
-  
+  uint16_t numChans;
+#ifndef DEBUG_SERIAL
   // Get last channel with non-zero value
-  uint16_t numChans = dmxA.getNbCh();
+  numChans = dmx.getDmx(true).len;
   while (numChans > 0) {
     if (dmxDataA[numChans] != 0)
       break;
@@ -68,11 +74,11 @@ bool Store::sceneSave(uint16_t sceneNum){
   // Write dmxA channel values
   for (int x = 0; x < numChans; x++)
     f.write(dmxDataA[x]);
-    
-  yield();
+#endif
   
+#ifdef USE_DMXB
   // Get last channel with non-zero value
-  numChans = dmxB.getNbCh();
+  numChans = dmx.getDmx(false).len;
   while (numChans > 0) {
     if (dmxDataB[numChans] != 0)
       break;
@@ -86,10 +92,9 @@ bool Store::sceneSave(uint16_t sceneNum){
   f.print(":");
   
   // Write dmxB channel values
-  for (int x = 0; x < numChans; x++) {
+  for (int x = 0; x < numChans; x++)
     f.write(dmxDataB[x]);
-
-  }
+#endif
   
   // Close file
   f.close();
@@ -134,9 +139,11 @@ bool Store::sceneLoad(uint16_t sceneNum){
   if (!f)
     return 0;
 
-  // get numChans for universe A
-  uint16_t numChans = f.readStringUntil(':').toInt();
+  uint16_t numChans;
 
+#ifndef DEBUG_SERIAL
+  // get numChans for universe A
+  numChans = f.readStringUntil(':').toInt();
   byte savedDMX[numChans];
 
   // Get DMX values from file
@@ -144,14 +151,11 @@ bool Store::sceneLoad(uint16_t sceneNum){
     savedDMX[x] = f.read();
 
   // Send channel data to DMX output
-  yield();
-  dmxA.clearChValues();
-  yield();
-  dmxA.setChValues(savedDMX, numChans);
-  yield();
+  dmx.getDmx(true).setData(numChans, savedDMX);
+#endif
   
+#ifdef USE_DMXB
   // Get numChans for universe B
-  Serial.println(f.readStringUntil(':'));
   numChans = f.readStringUntil(':').toInt();
   
   byte savedDMXB[numChans];
@@ -162,27 +166,28 @@ bool Store::sceneLoad(uint16_t sceneNum){
   }
 
   // Send channel data to DMX output
-  yield();
-  dmxB.clearChValues();
-  yield();
-  dmxB.setChValues(savedDMXB, numChans);
-  yield();
+  dmx.getDmx(false).setData(numChans, savedDMXB);
+#endif
 
   // Close file
   f.close();
 
-  #ifdef USE_WEBSERVER
+#ifdef USE_WEBSERVER
   webServer.outputScene = true;
   webServer.outputSceneNum = sceneNum;
-  #endif
+#endif
   
   return true;
 }
 
 void Store::scenesClear(){
-  dmxA.clearChValues();
-  dmxB.clearChValues();
-  #ifdef USE_WEBSERVER
+#ifndef DEBUG_SERIAL
+  dmx.getDmx(true).clear();
+#endif
+#ifdef USE_DMXB
+  dmx.getDmx(false).clear();
+#endif
+#ifdef USE_WEBSERVER
   webServer.outputScene = false;
-  #endif
+#endif
 }

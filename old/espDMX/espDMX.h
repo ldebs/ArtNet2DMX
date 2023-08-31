@@ -25,6 +25,7 @@ If not, see http://www.gnu.org/licenses/
 #include <inttypes.h>
 #include <Stream.h>
 #include <HardwareSerial.h>
+#include <settings.h>
 
 #define DMX_TX_CONF SERIAL_8N2 // SERIAL_8N2
 #define DMX_TX_BAUD 250000
@@ -104,7 +105,11 @@ public:
 };
 
 // External instances for two DMX universes
+#ifndef DEBUG_SERIAL
 extern espDMX dmxA;
+#endif
+#ifdef USE_DMXB
 extern espDMX dmxB;
+#endif
 
 #endif
